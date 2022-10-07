@@ -45,7 +45,7 @@ export default class IDPlugin extends Plugin {
 					return;
 				}
 
-				console.log("updating: ", f);
+				console.log("updating date: ", f);
 
 				// otherwise, push it to the cache
 				cache.push(bodyhash);
