@@ -1,6 +1,6 @@
 import { differenceInMinutes, parseISO } from "date-fns";
 import matter from "gray-matter";
-import { App, debounce, Plugin, TAbstractFile, TFile } from "obsidian";
+import { App, debounce, Plugin, TFile } from "obsidian";
 
 export default class IDPlugin extends Plugin {
     async onload() {
@@ -31,7 +31,7 @@ export default class IDPlugin extends Plugin {
             // If you want to read the content, change it, and then write it
             // back to disk, then use read() to avoid potentially overwriting
             // the file with a stale copy.
-            let contents = await app.vault.read(f);
+            const contents = await app.vault.read(f);
 
             const { data, content } = matter(contents);
 
@@ -70,11 +70,9 @@ export default class IDPlugin extends Plugin {
         // Called when a file has been indexed, and its (updated) cache is now available.
         this.app.metadataCache.on(
             "changed",
-            debounce(async (f: TAbstractFile) => {
-                f instanceof TFile && (await addDate(this.app, f));
+            debounce(async (f: TFile) => {
+                await addDate(this.app, f);
             }, 2000)
         );
     }
-
-    onunload() {}
 }
