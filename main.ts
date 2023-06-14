@@ -1,4 +1,4 @@
-import { differenceInMinutes, parseISO } from "date-fns";
+import { differenceInMinutes, parse, parseISO } from "date-fns";
 import matter from "gray-matter";
 import { App, debounce, Plugin, TFile } from "obsidian";
 
@@ -42,28 +42,22 @@ export default class IDPlugin extends Plugin {
                 (data.hasOwnProperty(updatedKey) &&
                     minutesSince(data[updatedKey]) > 1)
             ) {
-                console.log("updating updated time");
-
                 // parse the mtime, and format it as an ISO timestamp
                 data[updatedKey] = new Date();
                 dirty = true;
             }
 
             if (!data.hasOwnProperty(createdKey)) {
-                console.log("adding created time");
-
-                data[createdKey] = new Date();
+                data[createdKey] = parse(
+                    f.stat.ctime.toString(),
+                    "T",
+                    new Date()
+                );
                 dirty = true;
             }
 
             if (dirty) {
-                console.log(matter.stringify(content, data));
                 await app.vault.modify(f, matter.stringify(content, data));
-            } else {
-                console.log(
-                    "date had nothing to do",
-                    minutesSince(data[updatedKey])
-                );
             }
         }
 
