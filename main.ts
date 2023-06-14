@@ -1,4 +1,4 @@
-import { differenceInMinutes, formatISO, parse, parseISO } from "date-fns";
+import { differenceInMinutes, parseISO } from "date-fns";
 import matter from "gray-matter";
 import { App, debounce, Plugin, TAbstractFile, TFile } from "obsidian";
 
@@ -11,15 +11,12 @@ export default class IDPlugin extends Plugin {
             setTimeout(() => _addDate(app, f));
         }
 
-        function minutesSince(date: string): number {
-            try {
-                return Math.abs(
-                    differenceInMinutes(parseISO(date), new Date())
-                );
-            } catch (err) {
-                console.error(err);
-                throw err;
+        function minutesSince(date: Date | string): number {
+            if (typeof date == "string") {
+                date = parseISO(date);
             }
+
+            return Math.abs(differenceInMinutes(date, new Date()));
         }
 
         async function _addDate(app: App, f: TFile): Promise<void> {
@@ -38,31 +35,35 @@ export default class IDPlugin extends Plugin {
 
             const { data, content } = matter(contents);
 
-            // if there is an update key and it's been soon enough to update
-            // it, update it
-            if (data[updatedKey] && minutesSince(data[updatedKey]) > 1) {
-                // parse the mtime, and format it as an ISO timestamp
-                const t = parse(`${f.stat.mtime}`, "T", new Date());
-                data[updatedKey] = formatISO(t);
-                dirty = true;
-            }
+            // if there isn't an updated key, or there is an update key and
+            // it's been soon enough to update it, update it
+            if (
+                !data.hasOwnProperty(updatedKey) ||
+                (data.hasOwnProperty(updatedKey) &&
+                    minutesSince(data[updatedKey]) > 1)
+            ) {
+                console.log("updating updated time");
 
-            // if there is no updated key, add one
-            if (!data.hasOwnProperty(updatedKey)) {
                 // parse the mtime, and format it as an ISO timestamp
-                const t = parse(`${f.stat.mtime}`, "T", new Date());
-                data[updatedKey] = formatISO(t);
+                data[updatedKey] = new Date();
                 dirty = true;
             }
 
             if (!data.hasOwnProperty(createdKey)) {
-                data[createdKey] = formatISO(new Date());
+                console.log("adding created time");
+
+                data[createdKey] = new Date();
                 dirty = true;
             }
 
             if (dirty) {
                 console.log(matter.stringify(content, data));
                 await app.vault.modify(f, matter.stringify(content, data));
+            } else {
+                console.log(
+                    "date had nothing to do",
+                    minutesSince(data[updatedKey])
+                );
             }
         }
 
