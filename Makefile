@@ -6,7 +6,7 @@ PROJDIR=$(VAULT)/.obsidian/plugins/$(PROJECT)
 .PHONY: install
 install: clean $(TARGET)
 	mkdir -p $(VAULT)/.obsidian/plugins/obsidian-date-plugin/
-	cp {manifest.json,main.js} $(VAULT)/.obsidian/plugins/obsidian-date-plugin/
+	cp {manifest.json,$(TARGET)} $(VAULT)/.obsidian/plugins/obsidian-date-plugin/
 
 dist:
 	mkdir dist
