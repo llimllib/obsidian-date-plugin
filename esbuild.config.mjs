@@ -8,8 +8,6 @@ if you want to view the source, please visit the github repository of this plugi
 */
 `;
 
-const prod = process.argv[2] === "production";
-
 esbuild
 	.build({
 		banner: {
@@ -34,7 +32,6 @@ esbuild
 			...builtins,
 		],
 		format: "cjs",
-		watch: !prod,
 		target: "es2018",
 		logLevel: "info",
 		sourcemap: prod ? false : "inline",
