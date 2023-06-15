@@ -1,8 +1,13 @@
 import { differenceInMinutes, parse, parseISO } from "date-fns";
 import matter from "gray-matter";
-import { App, debounce, Plugin, TFile } from "obsidian";
-
-let isCurrentlyEnabled = false;
+import {
+    App,
+    debounce,
+    Debouncer,
+    Plugin,
+    PluginManifest,
+    TFile,
+} from "obsidian";
 
 async function addDate(app: App, f: TFile): Promise<void> {
     // I got the setTimeout trick from
@@ -20,8 +25,6 @@ function minutesSince(date: Date | string): number {
 }
 
 async function _addDate(app: App, f: TFile): Promise<void> {
-    if (!isCurrentlyEnabled) return;
-
     // we should only write data if we have changed something. the
     // dirty flag represents that a change has been made and therefore
     // we should write the update
@@ -65,16 +68,19 @@ function addDatesToAllNotes(app: App) {
 }
 
 export default class IDPlugin extends Plugin {
-    async onload() {
-        isCurrentlyEnabled = true;
+    handleChange: Debouncer<[f: TFile], Promise<void>>;
 
-        // Called when a file has been indexed, and its (updated) cache is now available.
-        this.app.metadataCache.on(
-            "changed",
-            debounce(async (f: TFile) => {
-                await addDate(this.app, f);
-            }, 2000)
-        );
+    constructor(app: App, manifest: PluginManifest) {
+        super(app, manifest);
+        this.handleChange = debounce(async (f: TFile) => {
+            await addDate(this.app, f);
+        }, 2000);
+    }
+
+    async onload() {
+        // Called when a file has been indexed, and its (updated) cache is now
+        // available.
+        this.app.metadataCache.on("changed", this.handleChange);
 
         this.addCommand({
             id: "add-dates-to-all-notes",
@@ -84,6 +90,6 @@ export default class IDPlugin extends Plugin {
     }
 
     async onunload() {
-        isCurrentlyEnabled = false;
+        this.app.metadataCache.off("changed", this.handleChange);
     }
 }
