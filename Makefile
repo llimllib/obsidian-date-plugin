@@ -1,12 +1,12 @@
 VAULT=~/code/tmp/obsidian-plugin-testing
-PROJECT=obsidian-date-plugin
+PROJECT=add-dates-to-frontmatter
 TARGET=dist/main.js
 PROJDIR=$(VAULT)/.obsidian/plugins/$(PROJECT)
 
 .PHONY: install
 install: clean $(TARGET)
-	mkdir -p $(VAULT)/.obsidian/plugins/obsidian-date-plugin/
-	cp {manifest.json,$(TARGET)} $(VAULT)/.obsidian/plugins/obsidian-date-plugin/
+	mkdir -p $(PROJDIR)
+	cp {manifest.json,$(TARGET)} $(PROJDIR)
 
 dist:
 	mkdir dist
@@ -22,8 +22,16 @@ clean:
 watch:
 	watchfiles "make" $$(fd -g --exclude node_modules --exclude dist "*.{ts,js}")
 
+.PHONY: ci
 ci:
 	npm ci
 	node_modules/.bin/eslint *.ts
 
-.PHONY: install ci
+.PHONY: production
+production:
+	# build a release minified and without the inline sourcemap
+	tsc -noEmit -skipLibCheck && node esbuild.config.mjs production
+
+.PHONY: release
+release: clean production
+	gh release create $$(jq -r .version manifest.json) dist/main.js manifest.json

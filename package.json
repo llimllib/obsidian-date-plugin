@@ -1,30 +1,30 @@
 {
-	"name": "obsidian-date-plugin",
-	"version": "1.0.0",
-	"description": "Add an updated date to every obsidian doc",
-	"main": "main.js",
-	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
-	},
-	"keywords": [],
-	"author": "Bill Mill",
-	"license": "MIT",
-	"devDependencies": {
-		"@types/node": "^16.11.6",
-		"@typescript-eslint/eslint-plugin": "5.29.0",
-		"@typescript-eslint/parser": "5.29.0",
-		"builtin-modules": "3.3.0",
-		"esbuild": "0.17.3",
-		"eslint": "^8.42.0",
-		"obsidian": "latest",
-		"prettier": "^2.7.1",
-		"tslib": "2.4.0",
-		"typescript": "4.7.4"
-	},
-	"dependencies": {
-		"date-fns": "^2.30.0",
-		"gray-matter": "^4.0.3"
-	}
+    "name": "add-dates-to-frontmatter",
+    "version": "1.0.0",
+    "description": "Add a created and updated date to the front matter for every document",
+    "main": "main.js",
+    "scripts": {
+        "dev": "node esbuild.config.mjs",
+        "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+        "version": "node version-bump.mjs && git add manifest.json versions.json"
+    },
+    "keywords": [],
+    "author": "Bill Mill",
+    "license": "MIT",
+    "devDependencies": {
+        "@types/node": "^16.11.6",
+        "@typescript-eslint/eslint-plugin": "5.29.0",
+        "@typescript-eslint/parser": "5.29.0",
+        "builtin-modules": "3.3.0",
+        "esbuild": "0.17.3",
+        "eslint": "^8.42.0",
+        "obsidian": "latest",
+        "prettier": "^2.7.1",
+        "tslib": "2.4.0",
+        "typescript": "4.7.4"
+    },
+    "dependencies": {
+        "date-fns": "^2.30.0",
+        "gray-matter": "^4.0.3"
+    }
 }

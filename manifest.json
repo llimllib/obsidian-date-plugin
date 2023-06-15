@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-date-plugin",
-	"name": "Obsidian date Plugin",
-	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Add an updated date to every document",
-	"author": "Bill Mill",
-	"authorUrl": "https://billmill.org",
-	"isDesktopOnly": false
+    "id": "add-dates-to-frontmatter",
+    "name": "Add created and updated dates to front matter",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "Add a created and updated date to the front matter for every document",
+    "author": "Bill Mill",
+    "authorUrl": "https://billmill.org",
+    "isDesktopOnly": false
 }
