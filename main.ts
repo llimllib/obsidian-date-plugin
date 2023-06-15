@@ -1,13 +1,6 @@
 import { differenceInMinutes, parse, parseISO } from "date-fns";
 import matter from "gray-matter";
-import {
-    App,
-    debounce,
-    Debouncer,
-    Plugin,
-    PluginManifest,
-    TFile,
-} from "obsidian";
+import { App, debounce, Plugin, TFile } from "obsidian";
 
 async function addDate(app: App, f: TFile): Promise<void> {
     // I got the setTimeout trick from
@@ -68,28 +61,22 @@ function addDatesToAllNotes(app: App) {
 }
 
 export default class IDPlugin extends Plugin {
-    handleChange: Debouncer<[f: TFile], Promise<void>>;
-
-    constructor(app: App, manifest: PluginManifest) {
-        super(app, manifest);
-        this.handleChange = debounce(async (f: TFile) => {
-            await addDate(this.app, f);
-        }, 2000);
-    }
-
     async onload() {
         // Called when a file has been indexed, and its (updated) cache is now
         // available.
-        this.app.metadataCache.on("changed", this.handleChange);
+        this.registerEvent(
+            this.app.metadataCache.on(
+                "changed",
+                debounce(async (f: TFile) => {
+                    await addDate(this.app, f);
+                }, 2000)
+            )
+        );
 
         this.addCommand({
             id: "add-dates-to-all-notes",
             name: "Add created and updated dates to all notes",
             callback: addDatesToAllNotes(this.app),
         });
-    }
-
-    async onunload() {
-        this.app.metadataCache.off("changed", this.handleChange);
     }
 }
