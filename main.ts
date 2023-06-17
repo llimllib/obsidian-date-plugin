@@ -1,13 +1,5 @@
 import { differenceInMinutes, parse, parseISO } from "date-fns";
-import matter from "gray-matter";
-import { App, debounce, Plugin, TFile } from "obsidian";
-
-async function addDate(app: App, f: TFile): Promise<void> {
-    // I got the setTimeout trick from
-    // salmund/obsidian-date-in-metadata, it seems to avoid the
-    // infinite loop I was getting though I don't understand why
-    setTimeout(() => _addDate(app, f));
-}
+import { App, Plugin, TFile } from "obsidian";
 
 function minutesSince(date: Date | string): number {
     if (typeof date == "string") {
@@ -17,46 +9,58 @@ function minutesSince(date: Date | string): number {
     return Math.abs(differenceInMinutes(date, new Date()));
 }
 
-async function _addDate(app: App, f: TFile): Promise<void> {
-    // we should only write data if we have changed something. the
-    // dirty flag represents that a change has been made and therefore
-    // we should write the update
-    let dirty = false;
-
+// if updated doesn't exist, use the mtime. This function differs from
+// addDateUpdatedNow other in that it assumes the file has been modified just
+// now
+async function addDateUpdatedNow(f: TFile): Promise<void> {
     const updatedKey = "updated";
     const createdKey = "created";
 
-    // If you want to read the content, change it, and then write it
-    // back to disk, then use read() to avoid potentially overwriting
-    // the file with a stale copy.
-    const contents = await app.vault.read(f);
+    const frontmatter = app.metadataCache.getFileCache(f)?.frontmatter;
 
-    const { data, content } = matter(contents);
-
-    // if there isn't an updated key, or there is an update key and
-    // it's been soon enough to update it, update it
-    if (
-        !data.hasOwnProperty(updatedKey) ||
-        (data.hasOwnProperty(updatedKey) && minutesSince(data[updatedKey]) > 1)
-    ) {
-        // parse the mtime, and format it as an ISO timestamp
-        data[updatedKey] = new Date();
-        dirty = true;
+    // if there is no updated date, or it's been more than a minute, update the
+    // updated date
+    const updatedFM = frontmatter?.[updatedKey];
+    if (!updatedFM || minutesSince(updatedFM) > 1) {
+        await app.fileManager.processFrontMatter(f, (data) => {
+            data[updatedKey] = new Date();
+        });
     }
 
-    if (!data.hasOwnProperty(createdKey)) {
-        data[createdKey] = parse(f.stat.ctime.toString(), "T", new Date());
-        dirty = true;
+    // if there is no created date, use the ctime
+    if (!frontmatter?.[createdKey]) {
+        await app.fileManager.processFrontMatter(f, (data) => {
+            data[createdKey] = parse(f.stat.ctime.toString(), "T", new Date());
+        });
+    }
+}
+
+// if updated doesn't exist, use the mtime. This function differs from the
+// other in that it doesn't assume the file has been modified just now
+async function addDateUpdatedMtime(f: TFile): Promise<void> {
+    const updatedKey = "updated";
+    const createdKey = "created";
+
+    const frontmatter = app.metadataCache.getFileCache(f)?.frontmatter;
+
+    // if there is no updated date, use the mtime
+    if (!frontmatter?.[updatedKey]) {
+        await app.fileManager.processFrontMatter(f, (data) => {
+            data[updatedKey] = parse(f.stat.mtime.toString(), "T", new Date());
+        });
     }
 
-    if (dirty) {
-        await app.vault.modify(f, matter.stringify(content, data));
+    // if there is no created date, use the ctime
+    if (!frontmatter?.[createdKey]) {
+        await app.fileManager.processFrontMatter(f, (data) => {
+            data[createdKey] = parse(f.stat.ctime.toString(), "T", new Date());
+        });
     }
 }
 
 function addDatesToAllNotes(app: App) {
     return () => {
-        app.vault.getMarkdownFiles().forEach((f) => _addDate(app, f));
+        app.vault.getMarkdownFiles().forEach((f) => addDateUpdatedMtime(f));
     };
 }
 
@@ -65,12 +69,7 @@ export default class IDPlugin extends Plugin {
         // Called when a file has been indexed, and its (updated) cache is now
         // available.
         this.registerEvent(
-            this.app.metadataCache.on(
-                "changed",
-                debounce(async (f: TFile) => {
-                    await addDate(this.app, f);
-                }, 2000)
-            )
+            this.app.metadataCache.on("changed", addDateUpdatedNow)
         );
 
         this.addCommand({
