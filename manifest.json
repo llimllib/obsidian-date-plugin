@@ -1,8 +1,8 @@
 {
     "id": "add-dates-to-frontmatter",
     "name": "File metadata",
-    "version": "1.0.0",
-    "minAppVersion": "0.15.0",
+    "version": "2.0.0",
+    "minAppVersion": "1.1.0",
     "description": "Add a created and updated date to the front matter for every document",
     "author": "Bill Mill",
     "authorUrl": "https://billmill.org",
