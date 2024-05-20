@@ -1,6 +1,6 @@
 {
     "id": "add-dates-to-frontmatter",
-    "name": "Add created and updated dates to front matter",
+    "name": "File metadata",
     "version": "1.0.0",
     "minAppVersion": "0.15.0",
     "description": "Add a created and updated date to the front matter for every document",
